@@ -10,7 +10,7 @@ import streamlit as st
 class TooFewGames(Exception):
     pass
 
-api_key = st.secret['keys']['api_key']
+api_key = st.secrets['keys']['api_key']
 set_default_openai_key(api_key)
 
 
