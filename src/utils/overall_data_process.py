@@ -16,7 +16,7 @@ def extract_data_for_model(countries, seasons, needed_cols, data='Preds'):
     clean_past_df = clean_data('', needed_cols, export=False, export_filepath=None, df=past_df)
     if data == 'Train':
         clean_past_df = add_all_features_to_df(clean_past_df,
-                                               r"C:\Repos\Misc\Football_Predictor\data\team_locations.pkl",
+                                               "data/team_locations.pkl",
                                                20, 5)
         final_past_df = final_clean(clean_past_df, predictions_col_names)
         return final_past_df
@@ -26,7 +26,7 @@ def extract_data_for_model(countries, seasons, needed_cols, data='Preds'):
         today = pd.Timestamp(datetime.now().date()) # current time with timezone awareness if applicable
         upcoming_filtered_df = clean_upcoming_df[clean_upcoming_df['Date'] >= today]
         clean_upcoming_df = add_all_features_to_df(clean_past_df,
-                                                   r"C:\Repos\Misc\Football_Predictor\data\team_locations.pkl", 20, 5,
+                                                   "data/team_locations.pkl", 20, 5,
                                                    test_df=upcoming_filtered_df)
         final_upcoming_df = final_clean(clean_upcoming_df, predictions_col_names)
         return final_upcoming_df
