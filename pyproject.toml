@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "football-prediction-tool"
+version = "0.1.0"
+description = "Football Predictor"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { file = "LICENSE" }
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["utils*"]
+
+# Optional: include non-Python assets shipped inside the package
+[tool.setuptools.package-data]
+survey_comparison_tool = ["**/*.*"]
+

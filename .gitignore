@@ -1,0 +1,21 @@
+venv/
+.venv/
+
+# Streamlit config/secrets
+.streamlit/
+.streamlit/secrets.toml
+
+# Common Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+
+data/England.csv
+data/cleaned_full_sample_set.csv
+data/english_football_data.csv
+data/full_sample_set_2.csv
+data/sample_set.csv
