@@ -8,7 +8,7 @@ pd.set_option('display.max_columns', None)
 
 
 def create_correct_bet_column_groups(df):
-    with open(r"C:\Repos\Misc\Football_Predictor\data\odds_columns.txt", 'r') as f:
+    with open("data/odds_columns.txt", 'r') as f:
         txt = f.readlines()
     bet_columns = [line.split('=')[0].strip() for line in txt]
     correct_bet_columns = [col_name for col_name in bet_columns if col_name in df.columns]
