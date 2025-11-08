@@ -4,12 +4,13 @@ from geopy.geocoders import Nominatim
 from geopy.distance import great_circle
 from agents import set_default_openai_key, Agent, Runner
 import pickle
+import streamlit as st
 
 
 class TooFewGames(Exception):
     pass
 
-
+api_key = st.secret['keys']['api_key']
 set_default_openai_key(api_key)
 
 
