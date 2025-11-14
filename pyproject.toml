@@ -21,3 +21,6 @@ include = ["utils*"]
 [tool.setuptools.package-data]
 survey_comparison_tool = ["**/*.*"]
 
+[tool.ruff]
+line-length = 120
+
