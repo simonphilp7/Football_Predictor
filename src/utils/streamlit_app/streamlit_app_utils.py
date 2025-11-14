@@ -77,7 +77,7 @@ class StreamlitApp:
             unsafe_allow_html=True,
         )
         st.set_page_config(page_title="Football Predictor", layout="wide")
-        prediction_page = st.Page(self.set_out_predictions_page, title="Football Predictor", icon=":material/home:")
+        prediction_page = st.Page(self.set_out_predictions_page, title="Football Predictor", icon=":material/sports_soccer:")
         info_page = st.Page(self.set_out_info_page, title="Information", icon=":material/info:")
         pg = st.navigation([prediction_page, info_page], position="sidebar")
         pg.run()

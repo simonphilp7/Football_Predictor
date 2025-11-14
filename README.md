@@ -199,3 +199,6 @@ This project is for educational purposes. Always gamble responsibly.
 
 - Football-Data.co.uk for providing historical match data
 - The scikit-learn, XGBoost, and Streamlit communities
+
+## Website
+The application is hosted at: [Football Predictor](https://footballpredictor-ytsyyddnxshdwbtzyrsuny.streamlit.app/)
