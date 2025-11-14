@@ -1,3 +1,5 @@
+"""Orchestrates the overall data processing pipeline from download to feature engineering."""
+
 from datetime import datetime
 
 import pandas as pd
@@ -9,12 +11,14 @@ from utils.data_processing.final_clean import final_clean, predictions_col_names
 
 
 def get_data(countries, seasons, country_divisions):
+    """Retrieves recent results and upcoming matches for specified countries and seasons."""
     recent_df = get_recent_results(countries, seasons)
     upcoming_df = get_upcoming_matches(countries, country_divisions)
     return recent_df, upcoming_df
 
 
 def extract_data_for_model(countries, seasons, needed_cols, country_divisions, data="Preds"):
+    """Extracts and processes data for model training or prediction with engineered features."""
     past_df, upcoming_df = get_data(countries, seasons, country_divisions)
     clean_past_df = clean_data("", needed_cols, export=False, export_filepath=None, df=past_df)
     if data == "Train":
@@ -33,33 +37,36 @@ def extract_data_for_model(countries, seasons, needed_cols, country_divisions, d
         final_upcoming_df = final_clean(clean_upcoming_df, predictions_col_names)
         return final_upcoming_df
 
-
-countries = ["England"]
-seasons = ["24_25", "25_26"]
-needed_cols = [
-    "Div",
-    "Div_Name",
-    "Season",
-    "Date",
-    "HomeTeam",
-    "AwayTeam",
-    "FTHG",
-    "FTAG",
-    "FTR",
-    "HS",
-    "AS",
-    "HST",
-    "AST",
-    "HR",
-    "AR",
-    "AVG_BETH",
-    "AVG_BETD",
-    "AVG_BETA",
-    "MAX_BETH",
-    "MAX_BETD",
-    "MAX_BETA",
-    "MAX_BETH_COMP",
-    "MAX_BETD_COMP",
-    "MAX_BETA_COMP",
-]
-country_divisions = {"England": ["E0", "E1", "E2", "E3", "E4", "EC"]}
+if __name__ == "__main__":
+    countries = ["England"]
+    seasons = [f'{str(idx)}_{str(idx+1)}' for idx in range(15,26)]
+    needed_cols = [
+        "Div",
+        "Div_Name",
+        "Season",
+        "Date",
+        "HomeTeam",
+        "AwayTeam",
+        "FTHG",
+        "FTAG",
+        "FTR",
+        "HS",
+        "AS",
+        "HST",
+        "AST",
+        "HR",
+        "AR",
+        "AVG_BETH",
+        "AVG_BETD",
+        "AVG_BETA",
+        "MAX_BETH",
+        "MAX_BETD",
+        "MAX_BETA",
+        "MAX_BETH_COMP",
+        "MAX_BETD_COMP",
+        "MAX_BETA_COMP",
+    ]
+    country_divisions = {"England": ["E0", "E1", "E2", "E3", "E4", "EC"]}
+    output_filepath = 'data/english_football_data.csv'
+    results_df = extract_data_for_model(countries, seasons, needed_cols, country_divisions, data="Train")
+    results_df.to_csv(output_filepath, index=False)

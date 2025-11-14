@@ -1,3 +1,5 @@
+"""Final data cleaning utilities for column selection and renaming."""
+
 full_dataset_col_names = {
     "Date": "date",
     "Div": "div",
@@ -102,6 +104,7 @@ predictions_col_names = {
 
 
 def final_clean(df, new_col_names):
+    """Filters and renames DataFrame columns according to specified mapping."""
     cols_to_keep = list(new_col_names.keys())
     processed_cols_to_keep = [col_name for col_name in cols_to_keep if col_name in list(df.columns)]
     filtered_df = df[processed_cols_to_keep]

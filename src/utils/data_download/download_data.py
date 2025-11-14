@@ -1,3 +1,5 @@
+"""Data downloading utilities for scraping and processing football match data from Football-Data.co.uk."""
+
 from pathlib import Path
 
 import pandas as pd
@@ -6,6 +8,7 @@ from bs4 import BeautifulSoup
 
 
 def extract_filepath_if_CSV_name(links):
+    """Returns only CSV file links if found, otherwise returns all links."""
     for link in links:
         if link[0] == "CSV":
             return [link]
@@ -13,6 +16,7 @@ def extract_filepath_if_CSV_name(links):
 
 
 def extract_links(html_path, suffix):
+    """Extracts all links with specified suffix from a webpage."""
     response = requests.get(html_path)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
@@ -22,12 +26,14 @@ def extract_links(html_path, suffix):
 
 
 def create_subfolders(subfolder_names, base_dir):
+    """Creates subdirectories for organizing downloaded data."""
     for name in subfolder_names:
         folder = Path(base_dir) / name
         folder.mkdir(parents=True, exist_ok=True)
 
 
 def extract_data_to_dir(name, href, html_base_path, base_dir):
+    """Downloads a single CSV file to the appropriate directory."""
     csv_path = html_base_path + "/" + href
     year = href.split("/")[1][:2] + "_" + href.split("/")[1][2:]
     save_path = base_dir / name / f"{year}.csv"
@@ -43,6 +49,7 @@ def extract_data_to_dir(name, href, html_base_path, base_dir):
 
 
 def extract_all_data_to_dir(html_path, base_dir, csv_links):
+    """Downloads multiple CSV files and organizes them into subdirectories."""
     subfolders = list(set([csv_link[0] for csv_link in csv_links]))
     create_subfolders(subfolders, base_dir)
     html_base_path = "/".join(html_path.split("/")[:-1])
@@ -54,6 +61,7 @@ def extract_all_data_to_dir(html_path, base_dir, csv_links):
 
 
 def extract_one_csv_to_dir(html_path, base_dir, csv_links):
+    """Downloads a single consolidated CSV file."""
     name, href = csv_links[0]
     base_dir.mkdir(parents=True, exist_ok=True)
     save_path = base_dir / f"full.csv"
@@ -66,6 +74,7 @@ def extract_one_csv_to_dir(html_path, base_dir, csv_links):
 
 
 def extract_data_to_dir_from_html(html_path, base_dir):
+    """Extracts and downloads all CSV data from an HTML page."""
     csv_links = extract_links(html_path, ".csv")
     if len(csv_links) == 1:
         extract_one_csv_to_dir(html_path, base_dir, csv_links)
@@ -74,6 +83,7 @@ def extract_data_to_dir_from_html(html_path, base_dir):
 
 
 def move_full_csv_to_dir(csv_file, columns="All", export=False, export_filepath=None):
+    """Loads a CSV file with optional column filtering and export."""
     if columns == "All":
         df = pd.read_csv(csv_file)
     else:
@@ -85,6 +95,7 @@ def move_full_csv_to_dir(csv_file, columns="All", export=False, export_filepath=
 
 
 def combine_data_from_dir(base_dir, columns="All", export=False, export_filepath=None):
+    """Combines multiple CSV files from a directory into a single DataFrame."""
     csv_files = list(base_dir.rglob("*.csv"))
     df_list = []
     if len(csv_files) == 1:
@@ -132,12 +143,14 @@ def combine_data_from_dir(base_dir, columns="All", export=False, export_filepath
 
 
 def export_combined_csv_from_html(html_path, save_dir, combined_csv_filepath, columns="All"):
+    """Downloads data from HTML page and exports as combined CSV file."""
     extract_data_to_dir_from_html(html_path, save_dir)
     combined_df = combine_data_from_dir(save_dir, columns=columns, export=True, export_filepath=combined_csv_filepath)
     return combined_df
 
 
 def extract_data_for_all_countries(base_dir):
+    """Downloads and processes football data for all available countries."""
     combined_dir = base_dir / "Combined"
     combined_dir.mkdir(parents=True, exist_ok=True)
     links = [
@@ -155,6 +168,7 @@ def extract_data_for_all_countries(base_dir):
 
 
 def get_upcoming_matches(countries, country_divisions):
+    """Retrieves upcoming matches for specified countries and divisions."""
     html_path = "https://www.football-data.co.uk/fixtures.csv"
     df = pd.read_csv(html_path)
     acceptable_divisions = [division for country in countries for division in country_divisions[country]]
@@ -163,6 +177,7 @@ def get_upcoming_matches(countries, country_divisions):
 
 
 def get_recent_results_from_path(html_path, seasons):
+    """Downloads and combines recent results from specific seasons at a given HTML path."""
     csv_links = extract_links(html_path, ".csv")
     df_list = []
     for div_name, href in csv_links:
@@ -198,6 +213,7 @@ def get_recent_results_from_path(html_path, seasons):
 
 
 def get_recent_results(countries, seasons):
+    """Retrieves recent results for specified countries and seasons."""
     links = [
         info
         for info in extract_links("https://www.football-data.co.uk/data.php", ".php")

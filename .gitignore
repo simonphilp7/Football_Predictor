@@ -19,5 +19,6 @@ data/cleaned_full_sample_set.csv
 data/english_football_data.csv
 data/full_sample_set_2.csv
 data/sample_set.csv
+data/old_english_football_data.csv
 
 .idea/

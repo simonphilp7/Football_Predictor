@@ -1,3 +1,5 @@
+"""Data cleaning utilities for processing raw football match data and extracting betting odds."""
+
 import math
 from datetime import datetime
 
@@ -6,6 +8,7 @@ import pandas as pd
 
 
 def create_correct_bet_column_groups(df):
+    """Creates grouped lists of betting columns that exist in the DataFrame."""
     with open("data/odds_columns.txt", "r") as f:
         txt = f.readlines()
     bet_columns = [line.split("=")[0].strip() for line in txt]
@@ -19,6 +22,7 @@ def create_correct_bet_column_groups(df):
 
 
 def extract_max_and_avg_odds(lst_of_odds):
+    """Calculates average and maximum odds across multiple betting companies."""
     if not (lst_of_odds):
         return pd.Series([np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan])
     non_empty_odds = [odds for odds in lst_of_odds if not (math.isnan(odds[0][0]))]
@@ -47,6 +51,7 @@ def extract_max_and_avg_odds(lst_of_odds):
 
 
 def find_odds(row, bet_column_groups):
+    """Extracts and aggregates odds from all available betting companies for a match row."""
     lst_of_odds = []
     for bet_column_group in bet_column_groups:
         try:
@@ -63,6 +68,7 @@ def find_odds(row, bet_column_groups):
 
 
 def parse_date(date_str):
+    """Parses date strings with multiple format support."""
     for fmt in ("%d/%m/%Y", "%d/%m/%y"):  # try 4-digit and 2-digit year
         try:
             return datetime.strptime(date_str, fmt)
@@ -72,6 +78,7 @@ def parse_date(date_str):
 
 
 def data_cleaning(df, test_data=False):
+    """Performs basic data cleaning including date parsing and type conversion."""
     df["Date"] = df["Date"].apply(parse_date)
     if test_data:
         return df
@@ -82,6 +89,7 @@ def data_cleaning(df, test_data=False):
 
 
 def clean_data(path, needed_cols, export=False, export_filepath=None, df=None, test_data=False):
+    """Main cleaning function that processes raw data, extracts odds, and filters columns."""
     if df is None:
         df = pd.read_csv(path)
     new_df = df.copy()

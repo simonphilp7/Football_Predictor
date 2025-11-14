@@ -1,3 +1,5 @@
+"""Machine learning model building utilities for training and hyperparameter tuning."""
+
 import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import accuracy_score, classification_report
@@ -7,12 +9,14 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 
 
 def load_in_df(filepath):
+    """Loads a CSV file into a DataFrame with date parsing."""
     full_df = pd.read_csv(filepath)
     full_df["date"] = pd.to_datetime(full_df["date"])
     return full_df
 
 
 def extract_train_and_test(df, train_split=0.8):
+    """Splits DataFrame into training and test sets based on date cutoff."""
     df_length = len(df)
     train_length = int(df_length * (train_split))
     date_cutoff = df["date"].iloc[-train_length]
@@ -22,6 +26,7 @@ def extract_train_and_test(df, train_split=0.8):
 
 
 def extract_X_and_Y(full_df, cols_to_drop, include_odds=False, date=None, X_only=False):
+    """Extracts feature matrix X and encoded target y from DataFrame."""
     if date is not None:
         subset_df = full_df[full_df["date"] > date]
     else:
@@ -40,17 +45,20 @@ def extract_X_and_Y(full_df, cols_to_drop, include_odds=False, date=None, X_only
 
 
 def find_cat_and_numerical_cols(X):
+    """Identifies categorical and numerical columns in feature matrix."""
     num_cols = X.select_dtypes(include=["int64", "float64"]).columns.to_list()
     cat_cols = X.select_dtypes(include=["object", "category"]).columns.to_list()
     return num_cols, cat_cols
 
 
 def create_pipeline(preprocessor, model):
+    """Creates a scikit-learn pipeline with preprocessing and model steps."""
     pipeline = Pipeline([("preprocessor", preprocessor), ("model", model)])
     return pipeline
 
 
 def fit_model(X_train, y_train, X_val, y_val, pipeline):
+    """Fits a pipeline model and returns predictions comparison DataFrame."""
     pipeline.fit(X_train, y_train)
     preds = pipeline.predict(X_val)
     comparison_df = pd.DataFrame({"Actual": y_val, "Predicted": preds})
@@ -59,12 +67,14 @@ def fit_model(X_train, y_train, X_val, y_val, pipeline):
 
 
 def create_model_from_pipeline(preprocessor, model, X_train, y_train, X_val, y_val):
+    """Creates and fits a complete pipeline model with validation."""
     pipeline = create_pipeline(preprocessor, model)
     df = fit_model(X_train, y_train, X_val, y_val, pipeline)
     return df
 
 
 def fit_model_from_df(train_df, cols_to_drop, model, val_size=0.2, include_odds=False):
+    """Fits a model directly from DataFrame with automatic preprocessing."""
     X_train, y_train = extract_X_and_Y(train_df, cols_to_drop, include_odds=include_odds)
     num_cols, cat_cols = find_cat_and_numerical_cols(X_train)
     training_size = len(X_train)
@@ -81,6 +91,7 @@ def fit_model_from_df(train_df, cols_to_drop, model, val_size=0.2, include_odds=
 
 
 def grid_search_from_df(train_df, test_df, cols_to_drop, model, param_grid, n_splits, include_odds=False):
+    """Performs grid search with time series cross-validation on DataFrame."""
     X_train, y_train = extract_X_and_Y(train_df, cols_to_drop, include_odds=include_odds)
     X_test, y_test = extract_X_and_Y(test_df, cols_to_drop, include_odds=include_odds)
     num_cols, cat_cols = find_cat_and_numerical_cols(X_train)
@@ -107,6 +118,7 @@ def grid_search_from_df(train_df, test_df, cols_to_drop, model, param_grid, n_sp
 def find_best_hyperparams_and_features(
     train_df, test_df, lst_of_cols_to_drop, model, param_grid, n_splits, include_odds=False
 ):
+    """Finds best hyperparameters and feature combinations via grid search."""
     results_dic = {}
     for idx, cols_to_drop in enumerate(lst_of_cols_to_drop):
         grid_search, accuracy, pipeline = grid_search_from_df(
@@ -119,6 +131,7 @@ def find_best_hyperparams_and_features(
 
 
 def find_best_model_and_further_info(train_df, test_df, lst_of_cols_to_drop, model_dic, n_splits, include_odds=False):
+    """Evaluates multiple models and returns best performing configuration."""
     best_results_dic = {}
     for model_name, model_info in model_dic.items():
         model = model_info[0]

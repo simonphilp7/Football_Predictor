@@ -1,3 +1,5 @@
+"""Streamlit application utilities for displaying football match predictions and information."""
+
 from pathlib import Path
 
 import joblib
@@ -11,6 +13,7 @@ from utils.overall_data_process import extract_data_for_model
 
 class StreamlitApp:
     def __init__(self):
+        """Initializes the StreamlitApp with custom CSS styling and page configuration."""
         # Add custom CSS for fonts/colors
         st.markdown(
             """
@@ -41,6 +44,7 @@ class StreamlitApp:
         st.set_page_config(page_title="Football Predictor", layout="wide")
 
     def add_basic_login(self):
+        """Adds password-based authentication to the Streamlit app."""
         AUTHORIZED_PASSWORD = st.secrets["passwords"]["app"]  # change this to whatever you like
 
         if "authenticated" not in st.session_state:
@@ -57,6 +61,7 @@ class StreamlitApp:
             st.stop()
 
     def set_out_base_app(self):
+        """Configures the base application layout with sidebar navigation and pages."""
         st.sidebar.image("data/football.png", width=64)
         st.sidebar.markdown("""
         ## Welcome!
@@ -78,10 +83,12 @@ class StreamlitApp:
         pg.run()
 
     def set_out_predictions_page(self):
+        """Displays the predictions page with upcoming match predictions."""
         st.title("Football Predictor - Upcoming Match Predictions")
         self.produce_predictions()
 
     def set_out_info_page(self):
+        """Displays the information page with project details and author contact information."""
         st.title("Information")
 
         st.markdown("""
@@ -148,6 +155,7 @@ class StreamlitApp:
             )
 
     def produce_predictions(self):
+        """Generates and caches match predictions using the trained model."""
         countries = ["England"]
         test_seasons = ["24_25", "25_26"]
         needed_cols = [
@@ -200,6 +208,7 @@ class StreamlitApp:
             self.format_df(df)
 
     def format_df(self, df):
+        """Formats and displays the predictions dataframe with custom column configurations."""
         column_config = {
             "date": st.column_config.DatetimeColumn("Date", format="MMMM D"),
             "div": "League",

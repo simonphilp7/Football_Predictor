@@ -1,3 +1,5 @@
+"""Model evaluation utilities for calculating predictions, expected values, and profit metrics."""
+
 import pandas as pd
 
 from utils.model_building.model_build import extract_X_and_Y
@@ -5,6 +7,7 @@ from utils.model_building.model_params import betting_company_maps, division_map
 
 
 def get_betting_vals_and_preds_no_calibration(test_df, cols_to_drop, best_model, use_probs=False, include_odds=False):
+    """Extracts betting values and model predictions without calibration."""
     betting_cols = ["MAX_BETH", "MAX_BETD", "MAX_BETA"]
     clean_test_df = test_df[~test_df["MAX_BETH"].isna()]
     new_cols_to_drop = [col for col in cols_to_drop if col not in betting_cols]
@@ -20,6 +23,7 @@ def get_betting_vals_and_preds_no_calibration(test_df, cols_to_drop, best_model,
 
 
 def get_betting_vals_and_preds_simple(test_df, cols_to_drop, model, include_odds=False, X_only=False):
+    """Extracts betting values, probability predictions, and class predictions from test data."""
     betting_cols = ["MAX_BETH", "MAX_BETD", "MAX_BETA"]
     clean_test_df = test_df[~test_df["MAX_BETH"].isna()]
     new_cols_to_drop = [col for col in cols_to_drop if col not in betting_cols]
@@ -37,6 +41,7 @@ def get_betting_vals_and_preds_simple(test_df, cols_to_drop, model, include_odds
 
 
 def profit_of_prediction(odds, prediction, actual):
+    """Calculates profit or loss for a single prediction given odds and actual result."""
     if prediction != actual:
         return -1
     else:
@@ -49,6 +54,7 @@ def profit_of_prediction(odds, prediction, actual):
 
 
 def calculate_ev(odds, prediction, prob):
+    """Calculates expected value of a bet given odds, prediction, and probability."""
     if prediction == 0:
         prediction_odds = odds[2]
     elif prediction == 1:
@@ -60,6 +66,7 @@ def calculate_ev(odds, prediction, prob):
 
 
 def profit_of_probability_predictions(odds, predictions, actual, acceptable_ev):
+    """Calculates profit if expected value exceeds acceptable threshold."""
     max_prob = max(predictions)
     prediction = list(predictions).index(max_prob)
     if calculate_ev(odds, prediction, max_prob) >= acceptable_ev:
@@ -69,12 +76,14 @@ def profit_of_probability_predictions(odds, predictions, actual, acceptable_ev):
 
 
 def calculate_evs(odds, predictions):
+    """Calculates expected value for the prediction with maximum probability."""
     max_prob = max(predictions)
     prediction = list(predictions).index(max_prob)
     return calculate_ev(odds, prediction, max_prob)
 
 
 def reformat_y(number):
+    """Converts numeric prediction to match result letter (H/D/A)."""
     if number == 0:
         return "A"
     elif number == 1:
@@ -84,6 +93,7 @@ def reformat_y(number):
 
 
 def extract_best_odds_and_company_of_prediction(row):
+    """Extracts the best odds and betting company for the predicted outcome."""
     prediction = row["Prediction"]
     if prediction == "H":
         return pd.Series([row["MAX_BETH"], betting_company_maps[row["MAX_BETH_COMP"][:-1]]])
@@ -94,6 +104,7 @@ def extract_best_odds_and_company_of_prediction(row):
 
 
 def get_ev_of_predictions(test_df, model, cols_to_drop, include_odds=False):
+    """Generates predictions with expected values and best odds for display."""
     betting_vals_lst, y_prob_preds, y_preds, y_test = get_betting_vals_and_preds_simple(
         test_df, cols_to_drop, model, X_only=True, include_odds=include_odds
     )
@@ -126,6 +137,7 @@ def get_ev_of_predictions(test_df, model, cols_to_drop, include_odds=False):
 def get_average_profit_of_past_predictions(
     test_df, cols_to_drop, model, acceptable_ev=0, top_n_evs=False, n_evs=None, use_probs=False, include_odds=False
 ):
+    """Calculates average profit per bet for past predictions with optional EV filtering."""
     betting_vals_lst, y_prob_preds, y_preds, y_test = get_betting_vals_and_preds_simple(
         test_df, cols_to_drop, model, include_odds=include_odds
     )
@@ -152,6 +164,7 @@ def get_average_profit_of_past_predictions(
 def get_overall_profit_of_past_predictions(
     test_df, cols_to_drop, model, acceptable_ev=0, use_probs=False, include_odds=False, stake=1
 ):
+    """Calculates total profit for all past predictions with a given stake."""
     average_profit, no_of_bets = get_average_profit_of_past_predictions(
         test_df, cols_to_drop, model, acceptable_ev=acceptable_ev, use_probs=use_probs, include_odds=include_odds
     )

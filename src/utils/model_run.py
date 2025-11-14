@@ -1,3 +1,5 @@
+"""Script for training, evaluating, and testing football match prediction models."""
+
 import joblib
 
 from utils.model_building.model_build import (

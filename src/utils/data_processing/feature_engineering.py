@@ -1,3 +1,5 @@
+"""Feature engineering for football matches including form statistics, travel distance, and team performance metrics."""
+
 import pickle
 
 import numpy as np
@@ -9,6 +11,7 @@ from geopy.geocoders import Nominatim
 
 
 class TooFewGames(Exception):
+    """Exception raised when insufficient games available for feature calculation."""
     pass
 
 
@@ -17,6 +20,7 @@ set_default_openai_key(api_key)
 
 
 def is_over_two_seasons(df):
+    """Checks if DataFrame spans multiple seasons."""
     if df["Season"].iloc[0] != df["Season"].iloc[-1]:
         return 1
     else:
@@ -24,6 +28,7 @@ def is_over_two_seasons(df):
 
 
 def is_league_change(df):
+    """Detects if team changed division and returns direction of change."""
     recent_league = df["Div"].iloc[0]
     old_league = df["Div"].iloc[-1]
     if recent_league == old_league:
@@ -37,6 +42,7 @@ def is_league_change(df):
 
 
 def return_n_game_info(df, n):
+    """Extracts information from the most recent n games."""
     reduced_df = df.head(n)
     if len(reduced_df) < 3:
         raise TooFewGames("")
@@ -46,6 +52,7 @@ def return_n_game_info(df, n):
 
 
 def find_most_recent_n_games(df, team, date, n, games="All"):
+    """Finds the most recent n games for a team before a given date."""
     filtered_df = df[(df["Date"] < date) & ((df["HomeTeam"] == team) | (df["AwayTeam"] == team))]
     filtered_home_df = filtered_df[filtered_df["HomeTeam"] == team]
     filtered_away_df = filtered_df[filtered_df["AwayTeam"] == team]
@@ -61,6 +68,7 @@ def find_most_recent_n_games(df, team, date, n, games="All"):
 
 
 def calculate_form_stats_for_home_or_away(df, type):
+    """Calculates form statistics for home or away games specifically."""
     results = df["FTR"].to_list()
     home_goals = df["FTHG"].to_list()
     away_goals = df["FTAG"].to_list()
@@ -81,6 +89,7 @@ def calculate_form_stats_for_home_or_away(df, type):
 
 
 def calculate_form_stats(df, team, games="All"):
+    """Calculates comprehensive form statistics including win rate and goal averages."""
     if games == "All":
         home_df = df[df["HomeTeam"] == team]
         away_df = df[df["AwayTeam"] == team]
@@ -126,6 +135,7 @@ def calculate_form_stats(df, team, games="All"):
 
 
 def no_of_red_cards_in_last_match(last_match, team):
+    """Extracts number of red cards received by team in their last match."""
     if last_match["HomeTeam"] == team:
         return int(last_match["HR"])
     elif last_match["AwayTeam"] == team:
@@ -135,6 +145,7 @@ def no_of_red_cards_in_last_match(last_match, team):
 
 
 def extract_form_stats(df, team, date, n, games="All"):
+    """Extracts all form statistics including season and league change information."""
     try:
         new_season, league_change, filtered_df = find_most_recent_n_games(df, team, date, n, games=games)
     except TooFewGames:
@@ -150,6 +161,7 @@ def extract_form_stats(df, team, date, n, games="All"):
 
 
 def extract_all_form_info(df, team, date, overall_n, home_and_away_n):
+    """Extracts comprehensive form information combining overall, home, and away statistics."""
     col_names = [
         "_new_season",
         "_league_change",
@@ -169,6 +181,7 @@ def extract_all_form_info(df, team, date, overall_n, home_and_away_n):
 
 
 def extract_last_match_info(df, team, date):
+    """Extracts information about team's most recent match including red cards and rest days."""
     filtered_df = df[(df["Date"] < date) & ((df["HomeTeam"] == team) | (df["AwayTeam"] == team))]
     if filtered_df.empty:
         return {"red_cards_in_last_match": np.nan, "days_between_games": np.nan}
@@ -182,6 +195,7 @@ def extract_last_match_info(df, team, date):
 
 
 def extract_all_team_info(df, team, date, overall_n, home_and_away_n):
+    """Combines all team information including form stats and last match details."""
     all_form_info_dic = extract_all_form_info(df, team, date, overall_n, home_and_away_n)
     last_match_info_dic = extract_last_match_info(df, team, date)
     all_team_info_dic = all_form_info_dic | last_match_info_dic
@@ -189,6 +203,7 @@ def extract_all_team_info(df, team, date, overall_n, home_and_away_n):
 
 
 def find_location_of_team(agent, geolocator, team):
+    """Geocodes team location using AI agent to resolve team names."""
     result = Runner.run_sync(agent, team)
     location = geolocator.geocode(result.final_output + ", United Kingdom")
     point = location.point
@@ -196,6 +211,7 @@ def find_location_of_team(agent, geolocator, team):
 
 
 def locate_each_team(df):
+    """Creates mapping of team names to geographic coordinates."""
     teams = list(df["HomeTeam"].unique())
     agent = Agent(
         name="Assistant",
@@ -207,6 +223,7 @@ def locate_each_team(df):
 
 
 def compute_travel_distance(home_team, away_team, team_locations):
+    """Calculates great circle distance between home and away team locations."""
     home_location = team_locations[home_team]
     away_location = team_locations[away_team]
     distance = great_circle(home_location, away_location)
@@ -214,6 +231,7 @@ def compute_travel_distance(home_team, away_team, team_locations):
 
 
 def extract_all_match_info_dic(df, team_locations, home_team, away_team, date, overall_n, home_and_away_n):
+    """Extracts complete match information dictionary including both teams and travel distance."""
     all_home_team_info_dic = extract_all_team_info(df, home_team, date, overall_n, home_and_away_n)
     all_away_team_info_dic = extract_all_team_info(df, away_team, date, overall_n, home_and_away_n)
     all_home_team_info_dic = {f"HT_{k}": v for k, v in all_home_team_info_dic.items()}
@@ -226,6 +244,7 @@ def extract_all_match_info_dic(df, team_locations, home_team, away_team, date, o
 
 
 def extract_all_info_for_match(match_row, df, team_locations, overall_n, home_and_away_n):
+    """Extracts all engineered features for a single match row."""
     home_team = match_row["HomeTeam"]
     away_team = match_row["AwayTeam"]
     date = match_row["Date"]
@@ -236,6 +255,7 @@ def extract_all_info_for_match(match_row, df, team_locations, overall_n, home_an
 
 
 def add_all_features_to_df(info_df, path_to_team_locations, overall_n, home_and_away_n, test_df=None):
+    """Adds all engineered features to DataFrame using historical data for context."""
     with open(path_to_team_locations, "rb") as f:  # 'rb' = read binary
         team_locations = pickle.load(f)
     if test_df is None:

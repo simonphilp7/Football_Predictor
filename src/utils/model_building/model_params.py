@@ -1,3 +1,5 @@
+"""Configuration parameters, models, and mappings for football prediction model training."""
+
 from catboost import CatBoostClassifier
 from lightgbm import LGBMClassifier
 from sklearn.ensemble import RandomForestClassifier
